@@ -1,3 +1,6 @@
+# Macos finder info file
+.DS_Store
+login_info.json
 # Logs
 logs
 *.log

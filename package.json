@@ -1,0 +1,23 @@
+{
+  "name": "mineai",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "test": "nodemon main"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/HeroGamers/MineAI.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/HeroGamers/MineAI/issues"
+  },
+  "homepage": "https://github.com/HeroGamers/MineAI#readme",
+  "dependencies": {
+    "mineflayer": "^2.40.1",
+    "prismarine-viewer": "^1.13.1"
+  }
+}
