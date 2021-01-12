@@ -26,8 +26,15 @@ const bot = mineflayer.createBot({
 
 
 bot.on('chat', function (username, message) {
-    if (username === bot.username) return
-    bot.chat(Combat.say_hello())
+    if (username == bot.username) return // så er det botten
+    
+    log("MSG:", username, message)
+    // bot.chat(Combat.say_hello())
+
+    if (message == '.jump') {
+        bot.setControlState('jump', true)
+        bot.setControlState('jump', false)
+    }
 })
 
 bot.once('spawn', () => {
