@@ -3,10 +3,12 @@ const print = log // support for Marcus
 
 const { readFileSync, writeFileSync } = require('fs')
 
-const _Combat = require('./combat.js')
-const _Tools = require('./tools.js')
+const _Combat = require('./Util/combat.js')
+const _Tools = require('./Util/tools.js')
+const _Logger = require('./Util/logger.js')
 const Combat = new _Combat
 const Tools = new _Tools
+const Logger = new _Logger
 
 
 const login_info = JSON.parse(readFileSync('login_info.json'))
@@ -33,8 +35,3 @@ bot.on('chat', function (username, message) {
 bot.once('spawn', () => {
   mineflayerViewer(bot, { port: login_info.view_port, firstPerson: login_info.first_person })
 })
-
-
-// Log errors and kick reasons:
-bot.on('kicked', (reason, loggedIn) => console.log(reason, loggedIn))
-bot.on('error', err => console.log(err))

@@ -1,3 +1,6 @@
+# IDEA
+.idea/
+
 # Macos finder info file
 .DS_Store
 login_info.json
