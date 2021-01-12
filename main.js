@@ -1,12 +1,18 @@
+const { log, table } = console
+const print = log // support for Marcus
+
 const { readFileSync, writeFileSync } = require('fs')
+
+const _Combat = require('./combat.js')
+const _Tools = require('./tools.js')
+const Combat = new _Combat
+const Tools = new _Tools
+
 
 const login_info = JSON.parse(readFileSync('login_info.json'))
 
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
-
-const Combat = require('./combat.js')
-const Tools = require('./tools.js')
 
 
 const bot = mineflayer.createBot({

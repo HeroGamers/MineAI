@@ -1,9 +1,8 @@
 class Combat {
-    constructor() {
-        // Ting og sager her
-    }
-
     // Eksempler
+    constructor() {
+        
+    }
 
     // Getter
     get area() {
@@ -15,3 +14,6 @@ class Combat {
         return "hello"
     }
 }
+
+
+module.exports = Combat

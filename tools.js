@@ -15,3 +15,6 @@ class Tools {
         return this.height * this.width
     }
 }
+
+
+module.exports = Tools
