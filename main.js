@@ -18,20 +18,73 @@ const bot = mineflayer.createBot({
 const _Combat = require('./Util/combat.js')
 const _Tools = require('./Util/tools.js')
 const _Logger = require('./Util/logger.js')
+const _Gather = require('./Util/gather.js')
 const Combat = new _Combat(bot)
 const Tools = new _Tools(bot)
 const Logger = new _Logger(bot, log)
+const Gather = new _Gather(bot)
+
+var save = {
+    masters: []
+}
+try {
+    save = JSON.parse(readFileSync('./save.json'))
+} catch (err) {}
 
 
 bot.on('chat', function (username, message) {
-    if (username === bot.username) return // så er det botten
+    if (username == bot.username) return // så er det botten selv, der skriver
 
-    if (message === '.jump') {
+    if (message.includes('.add_master')) {
+        if (message.includes(bot.username)) {
+            save.masters.push(username)
+            bot.chat('Added ' + username + ' to masters')
+        }
+    }
+
+    // Kommandoer
+    if (!save.masters.includes(username)) return
+
+
+    if (message == '.jump') {
         bot.setControlState('jump', true)
         bot.setControlState('jump', false)
     }
 })
 
 bot.once('spawn', () => {
-  mineflayerViewer(bot, { port: login_info.view_port, firstPerson: login_info.first_person })
+    mineflayerViewer(bot, { port: login_info.view_port, firstPerson: login_info.first_person })
+
+
+    loop = () => {
+        // loopy thingy
+        
+
+        setTimeout(loop, 50)
+    }
+    loop()
 })
+
+
+process.stdin.resume()
+
+function exitHandler(options, exitCode) {
+    writeFileSync('save.json', JSON.stringify(save, 0, 4, true))
+
+    if (options.cleanup) console.log('clean')
+    if (exitCode || exitCode === 0) console.log(exitCode)
+    if (options.exit) process.exit()
+}
+
+//do something when app is closing
+process.on('exit', exitHandler.bind(null,{cleanup:true}))
+
+//catches ctrl+c event
+process.on('SIGINT', exitHandler.bind(null, {exit:true}))
+
+// catches "kill pid" (for example: nodemon restart)
+process.on('SIGUSR1', exitHandler.bind(null, {exit:true}))
+process.on('SIGUSR2', exitHandler.bind(null, {exit:true}))
+
+//catches uncaught exceptions
+process.on('uncaughtException', exitHandler.bind(null, {exit:true}))

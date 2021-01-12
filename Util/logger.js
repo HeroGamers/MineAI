@@ -9,7 +9,7 @@ class Logger {
         // Log messages
         bot.on('chat', function (username, message) {
             if (username === bot.username) return // så er det botten
-            log("%c[Message] %c<"+username+"> " + message, "color: green", "color: white")
+            log('\x1b[32m[Message]\x1b[0m%s', " <"+username+"> " + message)
         })
 
         // Log health and stuff
