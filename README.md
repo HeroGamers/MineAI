@@ -6,7 +6,7 @@ IP: `167.86.81.143`
 
 # Opsætning
 
-Lav en fil ved navn `login_file.json` og sæt følgende ind i:
+Lav en fil ved navn `login_info.json` og sæt følgende ind i:
 ```json
 {
     "username": "",
