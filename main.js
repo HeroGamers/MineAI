@@ -1,16 +1,7 @@
 const { log, table } = console
 const print = log // support for Marcus
-
 const { readFileSync, writeFileSync } = require('fs')
-
-const _Combat = require('./combat.js')
-const _Tools = require('./tools.js')
-const Combat = new _Combat
-const Tools = new _Tools
-
-
 const login_info = JSON.parse(readFileSync('login_info.json'))
-
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 
@@ -23,6 +14,14 @@ const bot = mineflayer.createBot({
     version: login_info.version,    // false corresponds to auto version detection (that's the default), put for example "1.8.8" if you need a specific version
     auth: login_info.auth   // optional; by default uses mojang, if using a microsoft account, set to 'microsoft'
 })
+
+const _Combat = require('./combat.js')
+const _Tools = require('./tools.js')
+const Combat = new _Combat(bot)
+const Tools = new _Tools(bot)
+
+
+
 
 
 bot.on('chat', function (username, message) {
