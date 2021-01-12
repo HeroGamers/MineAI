@@ -4,7 +4,7 @@
   "description": "",
   "main": "main.js",
   "scripts": {
-    "test": "nodemon --ignore node_modules/ main"
+    "test": "nodemon --ignore testserver/ --ignore node_modules/ main"
   },
   "repository": {
     "type": "git",
