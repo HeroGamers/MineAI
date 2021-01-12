@@ -1,6 +1,6 @@
 class Tools {
-    constructor() {
-        // Ting og sager her
+    constructor(bot) {
+        this.bot = bot
     }
 
     // Eksempler

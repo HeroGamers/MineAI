@@ -1,7 +1,7 @@
 class Combat {
     // Eksempler
-    constructor() {
-        
+    constructor(bot) {
+        this.bot = bot
     }
 
     // Getter

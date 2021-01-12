@@ -1,18 +1,6 @@
 const { log, table } = console
-const print = log // support for Marcus
-
 const { readFileSync, writeFileSync } = require('fs')
-
-const _Combat = require('./Util/combat.js')
-const _Tools = require('./Util/tools.js')
-const _Logger = require('./Util/logger.js')
-const Combat = new _Combat
-const Tools = new _Tools
-const Logger = new _Logger
-
-
 const login_info = JSON.parse(readFileSync('login_info.json'))
-
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 
@@ -27,9 +15,21 @@ const bot = mineflayer.createBot({
 })
 
 
+const _Combat = require('./Util/combat.js')
+const _Tools = require('./Util/tools.js')
+const _Logger = require('./Util/logger.js')
+const Combat = new _Combat(bot)
+const Tools = new _Tools(bot)
+const Logger = new _Logger(bot, log)
+
+
 bot.on('chat', function (username, message) {
-    if (username === bot.username) return
-    bot.chat(Combat.say_hello())
+    if (username === bot.username) return // så er det botten
+
+    if (message === '.jump') {
+        bot.setControlState('jump', true)
+        bot.setControlState('jump', false)
+    }
 })
 
 bot.once('spawn', () => {
