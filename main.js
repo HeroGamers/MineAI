@@ -18,7 +18,7 @@ const bot = mineflayer.createBot({
 const _Combat = require('./Util/combat.js')
 const _Tools = require('./Util/tools.js')
 const _Logger = require('./Util/logger.js')
-const _Gather = require('./gather.js')
+const _Gather = require('./Util/gather.js')
 const Combat = new _Combat(bot)
 const Tools = new _Tools(bot)
 const Logger = new _Logger(bot, log)
@@ -34,7 +34,6 @@ try {
 
 bot.on('chat', function (username, message) {
     if (username == bot.username) return // så er det botten selv, der skriver
-    log("msg:", username, message)
 
     if (message.includes('.add_master')) {
         if (message.includes(bot.username)) {
