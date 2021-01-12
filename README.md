@@ -1,6 +1,9 @@
 # MineAI
 
 
+# Server
+IP: `167.86.81.143`
+
 # Opsætning
 
 Lav en fil ved navn `login_file.json` og sæt følgende ind i:
