@@ -19,10 +19,12 @@ const _Combat = require('./Util/combat.js')
 const _Tools = require('./Util/tools.js')
 const _Logger = require('./Util/logger.js')
 const _Gather = require('./Util/gather.js')
+const _Player = require('./Util/player.js')
 const Combat = new _Combat(bot)
 const Tools = new _Tools(bot)
 const Logger = new _Logger(bot, log)
 const Gather = new _Gather(bot)
+const Player = new _Player(bot)
 
 var save = {
     masters: []
@@ -55,11 +57,59 @@ bot.on('chat', function (username, message) {
 bot.once('spawn', () => {
     mineflayerViewer(bot, { port: login_info.view_port, firstPerson: login_info.first_person })
 
-
+    // Main bot loop
     loop = () => {
-        // loopy thingy
-        
+        var inventoryWindow = Player.getInventoryWindow()
+        var inventoryWood = Player.getWindowWood(inventoryWindow)
 
+        // If inventory is full
+        if (inventoryWindow.emptySlotCount() <= 1) {
+            // Throw out crap or put in chest if possible
+            log("Inventory is full.")
+        }
+        // If less than 30 wood logs in the inventory
+        else if (inventoryWood[0] < 32) {
+            // gather wood
+            Gather.getResource('wood', 64-inventoryWood[0])
+        }
+        // We have wood, check for planks?
+        else if (inventoryWood[1] < 32) {
+            Player.craftPlanks(64-inventoryWood[1])
+        }
+        // We have planks, check for crafting table, either in inventory or near the bot
+        else if (!Player.hasCraftingTable()) {
+            Player.craftCraftingTable()
+        }
+        // Check for a netherite, diamond or iron pickaxe first - since if we have those we can just go straight back to mining diamonds :)
+        else if (Player.hasPickaxe('netherite') || Player.hasPickaxe('diamond') || Player.hasPickaxe('iron')) {
+            Gather.getResource('diamonds', 1) // gather 1, if everything else checks out after next loop we can just pick up another :)
+        }
+        // Check for iron for iron pickaxe, if we have that craft it
+        else if (inventoryWindow.count(582) >= 3) {
+            Player.craftPickaxe('iron')
+        }
+        // Check for iron ore, if have it, smelt it (if we have cobble that is ahahah)
+        else if (inventoryWindow.count(34) >= 3) {
+            Player.smeltOre('iron')
+        }
+        // Since we don't have any iron, we gotta get that hehe, check for stone pickaxe
+        else if (Player.hasPickaxe('stone')) {
+            Gather.getResource('iron', 64-inventoryWindow.count(34))
+        }
+        // No stone pickaxe? Well, let's craft that - if we have cobblestone that is haha
+        else if (inventoryWindow.count(14) >= 3) {
+            Player.craftPickaxe('stone')
+        }
+        // No cobble? Let's fix that - check for shitty wooden pickaxe
+        else if (Player.hasPickaxe('wooden')) {
+            Gather.getResource('cobblestone',3)
+        }
+        // Craft wooden pickaxe
+        else {
+            Player.craftPickaxe('wooden')
+        }
+
+        // Loop forever :D
         setTimeout(loop, 50)
     }
     loop()
