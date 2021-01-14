@@ -1,7 +1,8 @@
 const Item = require("prismarine-item")("1.16");
+const { log } = console
 
 class Logger {
-    constructor(bot, log, mineflayer) {
+    constructor(bot) {
         // Log errors and kick reasons:
         bot.on('kicked', (reason, loggedIn) => log(reason, loggedIn))
         bot.on('error', err => log(err))
