@@ -38,26 +38,58 @@ bot.on('chat', function (username, message) {
     if (username === bot.username) return // så er det botten selv, der skriver
 
     // skriv i chat: tilføj mig som herre <navn på bot>
-    if (message.includes('tilføj mig som herre')) {
+    if (message.toLowerCase().includes('gør mig til din herre')) {
         if (message.includes(bot.username)) {
-            save.masters.push(username)
-            bot.chat('Added ' + username + ' to masters')
+            if (!save.masters.includes(username)) {
+                save.masters.push(username)
+                bot.chat('Du er nu min herre, ' + username + '.')
+            }
+            else {
+                bot.chat("Jeg er allerede din slave, min herre.")
+            }
         }
+        return
     }
 
     // Kommandoer
-    if (!save.masters.includes(username)) return
+    if (!save.masters.includes(username)) {return}
 
     var arg1 = message.split(" ")[0].toLowerCase()
     var arg2 = "null"
     if (message.split(" ").length >= 2) {
-        arg2 = message.split(" ")[1].toLowerCase()
+        arg2 = message.split(" ")
+        arg2.shift()
+        arg2 = arg2.join(" ").toLowerCase()
     }
 
     switch (arg1) {
+        case ".say":
+            if (arg2 !== "null") {
+                bot.chat(arg2)
+            }
+            break
+        case ".save":
+            log("Saving...")
+            writeFileSync('save.json', JSON.stringify(save, 0, 4, true))
+            break
         case ".jump":
             bot.setControlState('jump', true)
             bot.setControlState('jump', false)
+            break
+        case ".inventory":
+            function itemToString (item) {
+                if (item) {
+                    return `${item.name} x ${item.count}`
+                } else {
+                    return '(nothing)'
+                }
+            }
+            const output = bot.inventory.items().map(itemToString).join(', ')
+            if (output) {
+                bot.chat(output)
+            } else {
+                bot.chat('empty')
+            }
             break
         case ".get":
             switch (arg2) {
@@ -113,7 +145,6 @@ bot.once('spawn', () => {
     mineflayerViewer(bot, { port: login_info.view_port, firstPerson: login_info.first_person })
 
     // Main bot loop
-    //
     // loop = () => {
     //     var inventoryWindow = Player.getInventoryWindow()
     //     var inventoryWood = Player.getWindowWood(inventoryWindow)
