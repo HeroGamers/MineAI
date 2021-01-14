@@ -37,7 +37,8 @@ try {
 bot.on('chat', function (username, message) {
     if (username === bot.username) return // så er det botten selv, der skriver
 
-    if (message.includes('.add_master')) {
+    // skriv i chat: tilføj mig som herre <navn på bot>
+    if (message.includes('tilføj mig som herre')) {
         if (message.includes(bot.username)) {
             save.masters.push(username)
             bot.chat('Added ' + username + ' to masters')
