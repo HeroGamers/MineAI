@@ -3,6 +3,10 @@ const { readFileSync, writeFileSync } = require('fs')
 const login_info = JSON.parse(readFileSync('login_info.json'))
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
+const pathfinder = require('mineflayer-pathfinder').pathfinder
+const Movements = require('mineflayer-pathfinder').Movements
+const { GoalNear } = require('mineflayer-pathfinder').goals
+var vec = require('vec3')
 
 
 const bot = mineflayer.createBot({
@@ -14,6 +18,7 @@ const bot = mineflayer.createBot({
     auth: login_info.auth   // optional; by default uses mojang, if using a microsoft account, set to 'microsoft'
 })
 
+bot.loadPlugin(pathfinder)
 
 const _Combat = require('./Util/combat.js')
 const _Tools = require('./Util/tools.js')
@@ -34,7 +39,8 @@ try {
 } catch (err) {}
 
 
-bot.on('chat', function (username, message) {
+// Our command listener
+let checkChat = function (username, message, source) {
     if (username === bot.username) return // så er det botten selv, der skriver
 
     // skriv i chat: tilføj mig som herre <navn på bot>
@@ -43,6 +49,7 @@ bot.on('chat', function (username, message) {
             if (!save.masters.includes(username)) {
                 save.masters.push(username)
                 bot.chat('Du er nu min herre, ' + username + '.')
+                writeFileSync('save.json', JSON.stringify(save, 0, 4, true))
             }
             else {
                 bot.chat("Jeg er allerede din slave, min herre.")
@@ -53,7 +60,15 @@ bot.on('chat', function (username, message) {
 
     // Kommandoer
     if (!save.masters.includes(username)) {return}
+    // Kommando prefix
 
+
+    // McData og Pathfinder
+    const mcData = require('minecraft-data')(bot.version)
+    const defaultMove = new Movements(bot, mcData)
+    bot.pathfinder.setMovements(defaultMove)
+
+    // args
     var arg1 = message.split(" ")[0].toLowerCase()
     var arg2 = "null"
     if (message.split(" ").length >= 2) {
@@ -75,6 +90,42 @@ bot.on('chat', function (username, message) {
         case ".jump":
             bot.setControlState('jump', true)
             bot.setControlState('jump', false)
+            break
+        case ".comehere":
+            log("Trying to get to master...")
+            const target = bot.players[username] ? bot.players[username].entity : null
+            if (!target) {
+                bot.chat("Sorry, I can't see you...")
+                return
+            }
+
+            const p = target.position
+
+            bot.pathfinder.setGoal(new GoalNear(p.x, p.y, p.z, 1))
+
+            bot.on("goal_reached", () => {
+                bot.chat("I've reached your position, master.")
+            })
+            break
+        case ".goto":
+            log("Trying to reach position...")
+            var position = arg2.split(" ")
+            for (var i = 0; i < 3; i++) {
+                try {
+                    position[i] = parseFloat(position[i])
+                }
+                catch {
+                    bot.chat("Cannot parse position!")
+                    return
+                }
+            }
+
+            bot.pathfinder.setGoal(new GoalNear(position[0], position[1], position[2], 1))
+
+            bot.on("goal_reached", () => {
+                bot.chat("I've reached the desired position, master.")
+            })
+
             break
         case ".inventory":
             function itemToString (item) {
@@ -139,6 +190,14 @@ bot.on('chat', function (username, message) {
         default:
             break
     }
+}
+
+// Listen for both whispers and chats
+bot.on('chat', function (username, message) {
+    checkChat(username, message, "chat")
+})
+bot.on('whisper', function (username, message) {
+    checkChat(username, message, "whisper")
 })
 
 bot.once('spawn', () => {
@@ -164,7 +223,7 @@ bot.once('spawn', () => {
     //         Player.craftPlanks(64-inventoryWood[1])
     //     }
     //     // We have planks, check for crafting table, either in inventory or near the bot
-    //     else if (!Player.hasCraftingTable()) {
+    //     else if (!Player.getCraftingTable()) {
     //         Player.craftCraftingTable()
     //     }
     //     // If has enough diamonds for diamondpickaxe, craft that

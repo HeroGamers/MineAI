@@ -11,12 +11,34 @@ class Player {
         return this.bot.inventory
     }
 
-    hasCraftingTable() {
-
+    getCraftingTable() {
+        var inventory = this.getInventoryWindow()
+        if (inventory.count(183) >= 1) {
+            return ["inventory", inventory.findInventoryItem(183, null)]
+        }
+        var craftingBlock = this.bot.findBlock({
+            matching: [183],
+            maxDistance: 6
+        })
+        if (craftingBlock) {
+            return ["block", craftingBlock]
+        }
+        return null
     }
 
     craftCraftingTable() {
+        log("Trying to craft a crafting table...")
 
+        var craftingTableRecipe = this.bot.recipesFor(183, null, null, null)
+
+        if (craftingTableRecipe.length >= 1) {
+            this.bot.craft(craftingTableRecipe[0], null, null, () => {
+                log("Done crafting!")
+            })
+        }
+        else {
+            log("Could not craft a crafting table...")
+        }
     }
 
     getWindowWood(window) {
@@ -34,8 +56,8 @@ class Player {
         return [logs, planks]
     }
 
-    craftPlanks(amount) {
-        log("Crafting planks...")
+    craftPlanks(amount=64) {
+        log("Trying to craft planks x" + amount.toString() + "...")
         //* Crafts an x amount of planks, if possible *//
         // round down amount to fit
         amount = Math.floor(amount/4)*4
@@ -94,6 +116,7 @@ class Player {
         if (planks) {
             var i = 0
 
+            log("Crafting planks x" + planks.toString() + "...")
             var doCraft = () => {
                 if (i < recipes.length) {
                     this.bot.craft(recipes[i][1], recipes[i][0], null, () => {
@@ -105,6 +128,7 @@ class Player {
             doCraft()
         }
         else {
+            log("Not enough wood to craft planks...")
             this.bot.chat("I don't have enough wood to craft planks!")
         }
     }
