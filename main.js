@@ -6,7 +6,6 @@ const mineflayerViewer = require('prismarine-viewer').mineflayer
 const pathfinder = require('mineflayer-pathfinder').pathfinder
 const Movements = require('mineflayer-pathfinder').Movements
 const { GoalNear } = require('mineflayer-pathfinder').goals
-var vec = require('vec3')
 
 
 const bot = mineflayer.createBot({
@@ -43,16 +42,27 @@ try {
 let checkChat = function (username, message, source) {
     if (username === bot.username) return // så er det botten selv, der skriver
 
+    let say = function (sendMessage, username, source) {
+        switch (source) {
+            case "chat":
+                bot.chat(sendMessage)
+                break
+            case "whisper":
+                bot.whisper(username, sendMessage)
+                break
+        }
+    }
+
     // skriv i chat: tilføj mig som herre <navn på bot>
     if (message.toLowerCase().includes('gør mig til din herre')) {
         if (message.includes(bot.username)) {
             if (!save.masters.includes(username)) {
                 save.masters.push(username)
-                bot.chat('Du er nu min herre, ' + username + '.')
+                say('Du er nu min herre, ' + username + '.', username, source)
                 writeFileSync('save.json', JSON.stringify(save, 0, 4, true))
             }
             else {
-                bot.chat("Jeg er allerede din slave, min herre.")
+                say("Jeg er allerede din slave, min herre.", username, source)
             }
         }
         return
@@ -86,6 +96,7 @@ let checkChat = function (username, message, source) {
         case ".save":
             log("Saving...")
             writeFileSync('save.json', JSON.stringify(save, 0, 4, true))
+            writeFileSync('login_info.json', JSON.stringify(save, 0, 4, true))
             break
         case ".jump":
             bot.setControlState('jump', true)
@@ -95,7 +106,7 @@ let checkChat = function (username, message, source) {
             log("Trying to get to master...")
             const target = bot.players[username] ? bot.players[username].entity : null
             if (!target) {
-                bot.chat("Sorry, I can't see you...")
+                say("Sorry, I can't see you...", username, source)
                 return
             }
 
@@ -103,8 +114,8 @@ let checkChat = function (username, message, source) {
 
             bot.pathfinder.setGoal(new GoalNear(p.x, p.y, p.z, 1))
 
-            bot.on("goal_reached", () => {
-                bot.chat("I've reached your position, master.")
+            bot.once("goal_reached", () => {
+                say("I've reached your position, master.", username, source)
             })
             break
         case ".goto":
@@ -115,15 +126,15 @@ let checkChat = function (username, message, source) {
                     position[i] = parseFloat(position[i])
                 }
                 catch {
-                    bot.chat("Cannot parse position!")
+                    say("Cannot parse position!", username, source)
                     return
                 }
             }
 
             bot.pathfinder.setGoal(new GoalNear(position[0], position[1], position[2], 1))
 
-            bot.on("goal_reached", () => {
-                bot.chat("I've reached the desired position, master.")
+            bot.once("goal_reached", () => {
+                say("I've reached the desired position, master.", username, source)
             })
 
             break

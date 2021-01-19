@@ -129,7 +129,6 @@ class Player {
         }
         else {
             log("Not enough wood to craft planks...")
-            this.bot.chat("I don't have enough wood to craft planks!")
         }
     }
 
