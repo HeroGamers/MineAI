@@ -1,4 +1,5 @@
 const { log } = console
+var vec3 = require('vec3')
 
 class Player {
     constructor(bot) {
@@ -56,7 +57,7 @@ class Player {
         return [logs, planks]
     }
 
-    craftPlanks(amount=64) {
+    craftPlanks(amount=64, callback) {
         log("Trying to craft planks x" + amount.toString() + "...")
         //* Crafts an x amount of planks, if possible *//
         // round down amount to fit
@@ -124,15 +125,19 @@ class Player {
                         doCraft()
                     })
                 }
+                else {
+                    callback(true)
+                }
             }
             doCraft()
         }
         else {
             log("Not enough wood to craft planks...")
+            callback(false)
         }
     }
 
-    hasPickaxe(type) {
+    hasPickaxe(type, cb) {
         let inventoryWindow = this.getInventoryWindow()
         switch (type) {
             case "netherite":
@@ -152,30 +157,94 @@ class Player {
         }
     }
 
+    placeInteractable(item, cb) {
+        // get position to place it
+        var blockToPlaceOn = this.bot.findBlock({
+            useExtraInfo: true,
+            matching: (block) => {
+                if (block.type !== 0 && block.name !== "furnace" && block.name !== "crafting_table" && block.name !== "chest") {
+                    if (this.bot.blockAt(block.position.offset(0, 1, 0)).type === 0) {
+                        if (this.bot.canSeeBlock(block)) {
+                            return block
+                        }
+                    }
+                }
+                return false
+            },
+            maxDistance: 6,
+            count: 1
+        })
+        // Equip item
+        this.bot.equip(item, "hand", () => {
+            // place it
+            this.bot.placeBlock(blockToPlaceOn, vec3(0, 1, 0), () => {
+                cb(this.bot.blockAt(blockToPlaceOn.position.offset(0, 1, 0)))
+            })
+        })
+    }
+
+    getCraftingTableBlock(cb) {
+        let craftingTable = this.getCraftingTable()
+        if (!craftingTable) {
+            log("No crafting table!")
+            return
+        }
+
+        if (craftingTable[0] === "inventory") {
+            this.placeInteractable(craftingTable[1], (block) => {
+                cb(block)
+            })
+        }
+        else {
+            cb(craftingTable[1])
+        }
+    }
+
     craftPickaxe(type) {
         let inventoryWindow = this.getInventoryWindow()
-        switch (type) {
-            case "netherite":
-                // todo
-                break
-            case "diamond":
-                // todo
-                break
-            case "iron":
-                // todo
-                break
-            case "golden":
-                // todo
-                break
-            case "stone":
-                // todo
-                break
-            case "wooden":
-                // todo
-                break
-            default:
-                break
-        }
+
+        this.getCraftingTableBlock((craftingTable) => {
+            log(craftingTable)
+
+            // todo: fuck me
+
+            if (inventoryWindow.count(599) < 2) {
+                // craft sticks with planks
+                if (this.getWindowWood(inventoryWindow)[1] >= 2) {
+                    // ayee, we have two planks
+                }
+                else {
+                    this.craftPlanks(2, (state) => {
+                        if (!state) {
+                            //aaaaaaaaaaaaaaaaaaaaaaaa, callbacks :((((
+                        }
+                    })
+                }
+            }
+
+            switch (type) {
+                case "netherite":
+                    // todo
+                    break
+                case "diamond":
+                    // todo
+                    break
+                case "iron":
+                    // todo
+                    break
+                case "golden":
+                    // todo
+                    break
+                case "stone":
+                    // todo
+                    break
+                case "wooden":
+                    // todo
+                    break
+                default:
+                    break
+            }
+        })
     }
 
     smeltOre(type) {
