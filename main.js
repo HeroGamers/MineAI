@@ -201,6 +201,15 @@ let checkChat = function (username, message, source) {
                     break
             }
             break
+        case ".smelt":
+            switch (arg2) {
+                case "iron":
+                    Player.smeltOre("iron")
+                    break
+                default:
+                    break
+            }
+            break
         default:
             break
     }

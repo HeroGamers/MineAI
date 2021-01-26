@@ -31,14 +31,14 @@ class Player {
     }
 
     getFurnace() {
-        var furnaceItem = this.mcData.blocksByName.furnace
-        var craftingBlock = this.bot.findBlock({
-            matching: furnaceItem.id,
+        var furnaceItem = this.mcData.findItemOrBlockByName("furnace")
+        var furnaceBlock = this.bot.findBlock({
+            matching: this.mcData.blocksByName.furnace.id,
             maxDistance: 6,
             count: 1
         })
-        if (craftingBlock) {
-            return ["block", craftingBlock]
+        if (furnaceBlock) {
+            return ["block", furnaceBlock]
         }
         var inventory = this.getInventoryWindow()
         if (inventory.count(furnaceItem.id) >= 1) {
@@ -63,17 +63,24 @@ class Player {
     }
 
     craftFurnace() {
-        log("Trying to craft a furnace...")
+        var craftingTable = this.getCraftingTableBlock()
 
-        var furnaceRecipe = this.bot.recipesFor(this.mcData.blocksByName.furnace.id, null, null, null)
+        if (craftingTable) {
+            log("Trying to craft a furnace...")
 
-        if (furnaceRecipe.length >= 1) {
-            this.bot.craft(furnaceRecipe[0], null, null, () => {
-                log("Done crafting!")
-            })
+            var furnaceRecipe = this.bot.recipesFor(this.mcData.findItemOrBlockByName("furnace").id, null, null, craftingTable)[0]
+
+            if (furnaceRecipe) {
+                this.bot.craft(furnaceRecipe, null, craftingTable, () => {
+                    log("Done crafting!")
+                })
+            }
+            else {
+                log("Could not craft a furnace...")
+            }
         }
         else {
-            log("Could not craft a furnace...")
+            log("No crafting table")
         }
     }
 
@@ -366,14 +373,73 @@ class Player {
         }
     }
 
-    smeltOre(type) {
-        switch (type) {
-            case "iron":
-                // todo
-                break
-            default:
-                break
+    async smeltOre(type) {
+        // todo: finish this
+        var furnaceBlock = this.getFurnaceBlock()
+
+        if (furnaceBlock) {
+            var furnace = this.bot.openFurnace(furnaceBlock)
+
+            furnace.on("open", async () => {
+                if (furnace.outputItem()) {
+                    await furnace.takeOutput((cb) => {log(cb)})
+                }
+                if (furnace.fuelItem()) {
+                    await furnace.takeFuel((cb) => {log(cb)})
+                }
+                if (furnace.inputItem()) {
+                    await furnace.takeInput((cb) => {log(cb)})
+                }
+
+                let inventoryWindow = this.getInventoryWindow()
+
+                if (inventoryWindow.count(this.mcData.itemsByName.coal.id) > 0) {
+                    await furnace.putFuel(this.mcData.itemsByName.coal.id, null, inventoryWindow.count(this.mcData.itemsByName.coal.id))
+                }
+                else {
+                    var logType = [null, 0]
+                    for (var i = 0; i < this.log_ids.length; i++) {
+                        var log_count = inventoryWindow.count(this.log_ids[i])
+                        if (log_count > logType[1]) {
+                            logType = [this.log_ids[i], log_count]
+                        }
+                    }
+                    if (logType[0]) {
+                        await furnace.putFuel(logType[0], null, logType[1])
+                    }
+                }
+
+                if (furnace.fuelItem()) {
+                    let putItem = false
+                    switch (type) {
+                        case "iron":
+                            let ore = this.mcData.findItemOrBlockByName("iron_ore")
+                            if (inventoryWindow.count(ore.id) > 0) {
+                                putItem = true
+                                await furnace.putInput(ore.id, null, inventoryWindow.count(ore.id))
+                            }
+                            break
+                        default:
+                            break
+                    }
+
+                    if (putItem) {
+                        furnace.on("update", async () => {
+                            if (furnace.outputItem()) {
+                                await furnace.takeOutput((cb) => {log(cb)})
+                            }
+                            if (!furnace.inputItem() || !furnace.fuelItem()) {
+                                furnace.off("update")
+                                furnace.close()
+                                await this.bot.dig(furnaceBlock, true, (err) => log(err))
+                            }
+                        })
+                    }
+                }
+            })
         }
+
+
     }
 
     init() {
