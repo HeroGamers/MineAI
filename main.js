@@ -1,6 +1,6 @@
 const { log, table } = console
 const { readFileSync, writeFileSync } = require('fs')
-const login_info = JSON.parse(readFileSync('login_info.json'))
+const login_info = JSON.parse(readFileSync('login_info.json', "utf8"))
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 
