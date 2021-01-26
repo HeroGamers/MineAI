@@ -213,6 +213,7 @@ bot.on('whisper', function (username, message) {
 
 bot.once('spawn', () => {
     mineflayerViewer(bot, { port: login_info.view_port, firstPerson: login_info.first_person })
+    Player.init()
 
     // Main bot loop
     // loop = () => {
@@ -267,7 +268,7 @@ bot.once('spawn', () => {
     //     }
     //     // Craft wooden pickaxe
     //     else {
-    //         Player.craftPickaxe('wooden')
+    //         Player.craftPickaxe('wooden', () => {})
     //     }
     //
     //     // Loop forever :D

@@ -6,6 +6,7 @@ class Player {
         this.bot = bot
         this.log_ids = [37, 38, 39, 40, 41, 42, 45, 46, 47, 48, 49, 50]
         this.plank_ids = [15, 16, 17, 18, 19, 20, 21, 22]
+        this.mcData = require('minecraft-data')(bot.version)
     }
 
     getInventoryWindow() {
@@ -13,16 +14,17 @@ class Player {
     }
 
     getCraftingTable() {
-        var inventory = this.getInventoryWindow()
-        if (inventory.count(183) >= 1) {
-            return ["inventory", inventory.findInventoryItem(183, null)]
-        }
         var craftingBlock = this.bot.findBlock({
-            matching: [183],
-            maxDistance: 6
+            matching: this.mcData.blocksByName.crafting_table.id,
+            maxDistance: 6,
+            count: 1
         })
         if (craftingBlock) {
             return ["block", craftingBlock]
+        }
+        var inventory = this.getInventoryWindow()
+        if (inventory.count(183) >= 1) {
+            return ["inventory", inventory.findInventoryItem(183, null)]
         }
         return null
     }
@@ -47,17 +49,17 @@ class Player {
         var logs = 0
         var planks = 0
 
-        for (var log_id in this.log_ids) {
-            logs = logs + window.count(log_id)
+        for (var i in this.log_ids) {
+            logs = logs + window.count(this.log_ids[i])
         }
-        for (var plank_id in this.plank_ids) {
-            planks = planks + window.count(plank_id)
+        for (i in this.plank_ids) {
+            planks = planks + window.count(this.plank_ids[i])
         }
 
         return [logs, planks]
     }
 
-    craftPlanks(amount=64, callback) {
+    async craftPlanks(amount=64) {
         log("Trying to craft planks x" + amount.toString() + "...")
         //* Crafts an x amount of planks, if possible *//
         // round down amount to fit
@@ -115,25 +117,13 @@ class Player {
             }
         }
         if (planks) {
-            var i = 0
-
             log("Crafting planks x" + planks.toString() + "...")
-            var doCraft = () => {
-                if (i < recipes.length) {
-                    this.bot.craft(recipes[i][1], recipes[i][0], null, () => {
-                        i++
-                        doCraft()
-                    })
-                }
-                else {
-                    callback(true)
-                }
+            for (var i = 0; i < recipes.length; i++) {
+                await this.bot.craft(recipes[i][1], recipes[i][0], null)
             }
-            doCraft()
         }
         else {
             log("Not enough wood to craft planks...")
-            callback(false)
         }
     }
 
@@ -183,68 +173,147 @@ class Player {
         })
     }
 
-    getCraftingTableBlock(cb) {
+    getCraftingTableBlock() {
         let craftingTable = this.getCraftingTable()
         if (!craftingTable) {
             log("No crafting table!")
-            return
+            return null
         }
 
         if (craftingTable[0] === "inventory") {
             this.placeInteractable(craftingTable[1], (block) => {
-                cb(block)
+                return block
             })
         }
         else {
-            cb(craftingTable[1])
+            return craftingTable[1]
         }
     }
 
-    craftPickaxe(type) {
+    async craftSticks(amount=64) {
         let inventoryWindow = this.getInventoryWindow()
 
-        this.getCraftingTableBlock((craftingTable) => {
-            log(craftingTable)
+        let doCraft = async () => {
+            log("Trying to craft sticks x" + amount.toString() + "...")
+            //* Crafts an x amount of sticks, if possible *//
+            // round down amount to fit
+            amount = Math.floor(amount/4)*4
 
-            // todo: fuck me
-
-            if (inventoryWindow.count(599) < 2) {
-                // craft sticks with planks
-                if (this.getWindowWood(inventoryWindow)[1] >= 2) {
-                    // ayee, we have two planks
-                }
-                else {
-                    this.craftPlanks(2, (state) => {
-                        if (!state) {
-                            //aaaaaaaaaaaaaaaaaaaaaaaa, callbacks :((((
-                        }
-                    })
-                }
+            if (amount < 4) {
+                amount = 4
             }
 
+            var planks = 0
+
+            for (var i = 0; i < this.plank_ids.length; i++) {
+                planks += inventoryWindow.count(this.plank_ids[i])
+            }
+
+            var max_sticks = Math.floor(planks/2)*2*4
+
+            if (max_sticks >= 4) {
+                i = 0
+
+                if (amount > max_sticks) {
+                    amount = max_sticks
+                }
+
+                var craft_times = amount/4
+
+                const item = this.mcData.findItemOrBlockByName("stick")
+
+                log("Crafting sticks x" + amount.toString() + "...")
+                for (i = 0; i < craft_times; i++) {
+                    var recipe = this.bot.recipesFor(item.id, null, 1, null)[0]
+                    await this.bot.craft(recipe, 1, null)
+                }
+            }
+            else {
+                log("Not enough planks to craft sticks...")
+            }
+        }
+
+
+        // craft sticks with planks
+        if (this.getWindowWood(inventoryWindow)[1] >= 2) {
+            await doCraft()
+        }
+        else {
+            await this.craftPlanks(2)
+            if (this.getWindowWood(this.getInventoryWindow())[1] >= 2) {
+                await doCraft()
+            }
+        }
+    }
+
+    async craftPickaxe(type) {
+        let inventoryWindow = this.getInventoryWindow()
+
+        var craftingTable = this.getCraftingTableBlock()
+        var doCraft = async () => {
+            log("crafting pickaxe...")
+            var recipe
             switch (type) {
-                case "netherite":
-                    // todo
-                    break
                 case "diamond":
-                    // todo
+                    if (inventoryWindow.count(this.mcData.findItemOrBlockByName("diamond").id) >= 3) {
+                        recipe = this.bot.recipesFor(this.mcData.findItemOrBlockByName("diamond_pickaxe").id, null, null, craftingTable)[0]
+                        await this.bot.craft(recipe, 1, craftingTable)
+                    }
+                    else {
+                        log("Not enough diamonds")
+                    }
                     break
                 case "iron":
-                    // todo
+                    if (inventoryWindow.count(this.mcData.findItemOrBlockByName("iron_ingot").id) >= 3) {
+                        recipe = this.bot.recipesFor(this.mcData.findItemOrBlockByName("iron_pickaxe").id, null, null, craftingTable)[0]
+                        await this.bot.craft(recipe, 1, craftingTable)
+                    }
+                    else {
+                        log("Not enough iron")
+                    }
                     break
                 case "golden":
-                    // todo
+                    if (inventoryWindow.count(this.mcData.findItemOrBlockByName("gold_ingot").id) >= 3) {
+                        recipe = this.bot.recipesFor(this.mcData.findItemOrBlockByName("golden_pickaxe").id, null, null, craftingTable)[0]
+                        await this.bot.craft(recipe, 1, craftingTable)
+                    }
+                    else {
+                        log("Not enough gold")
+                    }
                     break
                 case "stone":
-                    // todo
+                    if (inventoryWindow.count(this.mcData.findItemOrBlockByName("cobblestone").id) >= 3) {
+                        recipe = this.bot.recipesFor(this.mcData.findItemOrBlockByName("stone_pickaxe").id, null, null, craftingTable)[0]
+                        await this.bot.craft(recipe, 1, craftingTable)
+                    }
+                    else {
+                        log("Not enough cobblestone")
+                    }
                     break
                 case "wooden":
-                    // todo
+                    log("Crafting wooden pickaxe")
+                    if (this.getWindowWood(inventoryWindow)[1] >= 3) {
+                        recipe = this.bot.recipesFor(this.mcData.findItemOrBlockByName("wooden_pickaxe").id, null, null, craftingTable)[0]
+                        await this.bot.craft(recipe, 1, craftingTable)
+                    }
+                    else {
+                        log("Not enough planks")
+                    }
                     break
                 default:
                     break
             }
-        })
+        }
+
+        if (inventoryWindow.count(this.mcData.findItemOrBlockByName("stick").id) < 2) {
+            await this.craftSticks(2)
+            if (this.getInventoryWindow().count(this.mcData.findItemOrBlockByName("stick").id) >= 2) {
+                await doCraft()
+            }
+        }
+        else {
+            await doCraft()
+        }
     }
 
     smeltOre(type) {
@@ -255,6 +324,10 @@ class Player {
             default:
                 break
         }
+    }
+
+    init() {
+        this.mcData = require('minecraft-data')(this.bot.version)
     }
 }
 
