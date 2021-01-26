@@ -191,6 +191,9 @@ let checkChat = function (username, message, source) {
                 case "craftingtable":
                     Player.craftCraftingTable()
                     break
+                case "furnace":
+                    Player.craftFurnace()
+                    break
                 case "planks":
                     Player.craftPlanks()
                     break

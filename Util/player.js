@@ -14,8 +14,9 @@ class Player {
     }
 
     getCraftingTable() {
+        var craftingTableItem = this.mcData.blocksByName.crafting_table
         var craftingBlock = this.bot.findBlock({
-            matching: this.mcData.blocksByName.crafting_table.id,
+            matching: craftingTableItem.id,
             maxDistance: 6,
             count: 1
         })
@@ -23,8 +24,25 @@ class Player {
             return ["block", craftingBlock]
         }
         var inventory = this.getInventoryWindow()
-        if (inventory.count(183) >= 1) {
-            return ["inventory", inventory.findInventoryItem(183, null)]
+        if (inventory.count(craftingTableItem.id) >= 1) {
+            return ["inventory", inventory.findInventoryItem(craftingTableItem.id, null)]
+        }
+        return null
+    }
+
+    getFurnace() {
+        var furnaceItem = this.mcData.blocksByName.furnace
+        var craftingBlock = this.bot.findBlock({
+            matching: furnaceItem.id,
+            maxDistance: 6,
+            count: 1
+        })
+        if (craftingBlock) {
+            return ["block", craftingBlock]
+        }
+        var inventory = this.getInventoryWindow()
+        if (inventory.count(furnaceItem.id) >= 1) {
+            return ["inventory", inventory.findInventoryItem(furnaceItem.id, null)]
         }
         return null
     }
@@ -32,7 +50,7 @@ class Player {
     craftCraftingTable() {
         log("Trying to craft a crafting table...")
 
-        var craftingTableRecipe = this.bot.recipesFor(183, null, null, null)
+        var craftingTableRecipe = this.bot.recipesFor(this.mcData.blocksByName.crafting_table.id, null, null, null)
 
         if (craftingTableRecipe.length >= 1) {
             this.bot.craft(craftingTableRecipe[0], null, null, () => {
@@ -41,6 +59,21 @@ class Player {
         }
         else {
             log("Could not craft a crafting table...")
+        }
+    }
+
+    craftFurnace() {
+        log("Trying to craft a furnace...")
+
+        var furnaceRecipe = this.bot.recipesFor(this.mcData.blocksByName.furnace.id, null, null, null)
+
+        if (furnaceRecipe.length >= 1) {
+            this.bot.craft(furnaceRecipe[0], null, null, () => {
+                log("Done crafting!")
+            })
+        }
+        else {
+            log("Could not craft a furnace...")
         }
     }
 
@@ -187,6 +220,23 @@ class Player {
         }
         else {
             return craftingTable[1]
+        }
+    }
+
+    getFurnaceBlock() {
+        let furnace = this.getFurnace()
+        if (!furnace) {
+            log("No furnace!")
+            return null
+        }
+
+        if (furnace[0] === "inventory") {
+            this.placeInteractable(furnace[1], (block) => {
+                return block
+            })
+        }
+        else {
+            return furnace[1]
         }
     }
 
