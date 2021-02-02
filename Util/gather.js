@@ -1,3 +1,5 @@
+const { log } = console
+
 class Gather {
     // remember to pick up crafting table if it's placed somewhere before gathering, should be done in here I guess
     constructor(bot) {
@@ -9,6 +11,7 @@ class Gather {
     }
 
     getResource(type, amount=64) {
+        log("Gathering " + amount + "x " + type + "...")
         switch (type) {
             case 'diamonds':
                 break
