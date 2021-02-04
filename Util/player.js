@@ -14,31 +14,21 @@ class Player {
     }
 
     eat() {
-        const mcData = require('minecraft-data')(bot.version)
-        var data = mcData.foodsArray
+        var data = this.mcData.foodsArray
         var foodNames = data.map((item) => item.name)
-        var inventory = getInventoryWindow().items();
+        var inventory = this.getInventoryWindow().items();
         var found_food = inventory.filter((item) => foodNames.includes(item.name))
-        if (bot.food = 20){
+        log(found_food)
+        if (this.bot.food === 20){
             // dont eat
+            log("Not hungry")
         }else if(found_food.length === 0 || !found_food){
             // No food found
-             return callback(new Error('No food found.'))
+            log("No food")
         }else {
             //eat
-            for (var i = 0; i < inventory.length; i++) {
-                switch(inventory[i].name) {
-                    case "apple": bot.equip(inventory[i], "hand", callback), bot.consume(callback)
-                    case "bread": bot.equip(inventory[i], "hand", callback), bot.consume(callback)                       
-                    case "carrot": bot.equip(inventory[i], "hand", callback), bot.consume(callback)
-                    case "cooked chicken": bot.equip(inventory[i], "hand", callback), bot.consume(callback)
-                    case "cooked mutton": bot.equip(inventory[i], "hand", callback), bot.consume(callback)
-                    case "cooked porkchop": bot.equip(inventory[i], "hand", callback), bot.consume(callback)
-                        break
-                    default
-                        break
-                }
-            }
+            log("Ate some food")
+            this.bot.equip(found_food[0], "hand", (callback) => {this.bot.consume()})
         }
     }
 

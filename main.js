@@ -93,6 +93,10 @@ let checkChat = function (username, message, source) {
                 bot.chat(arg2)
             }
             break
+        case ".eat":
+            log("eat function go")
+            Player.eat()
+            break
         case ".save":
             log("Saving...")
             writeFileSync('save.json', JSON.stringify(save, 0, 4, true))
