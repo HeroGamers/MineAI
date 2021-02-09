@@ -424,12 +424,12 @@ class Player {
                     }
 
                     if (putItem) {
-                        furnace.on("update", async () => {
+                        furnace.on("update", async (event, listener) => {
                             if (furnace.outputItem()) {
                                 await furnace.takeOutput((cb) => {log(cb)})
                             }
                             if (!furnace.inputItem() || !furnace.fuelItem()) {
-                                furnace.off("update")
+                                furnace.off("update", listener)
                                 furnace.close()
                                 await this.bot.dig(furnaceBlock, true, (err) => log(err))
                             }

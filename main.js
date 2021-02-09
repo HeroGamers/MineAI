@@ -90,7 +90,7 @@ let checkChat = function (username, message, source) {
     switch (arg1) {
         case ".say":
             if (arg2 !== "null") {
-                bot.chat(arg2)
+                say(arg2, username, source)
             }
             break
         case ".save":
