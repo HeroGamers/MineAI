@@ -172,7 +172,17 @@ let checkChat = function (username, message, source) {
                     Gather.getResource("cobblestone", 64)
                     break
                 case "wood":
-                    Gather.getResource("wood", 64)
+                    Gather.getResource("wood", 4)
+                    break
+                case "clear":
+                    bot.G_clear_ressources()
+                    bot.chat('Min kalender er ryddet!')
+                    break
+                case "toggle":
+                    bot.G_toggle_gathering()
+                    break
+                case "list":
+                    bot.G_list_ressources()
                     break
                 default:
                     break
@@ -291,6 +301,10 @@ bot.once('spawn', () => {
     //     setTimeout(loop, 50)
     // }
     // loop()
+
+    setInterval(() => {
+        Gather._getRessources()
+    }, 3000)
 })
 
 

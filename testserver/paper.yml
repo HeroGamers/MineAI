@@ -78,6 +78,11 @@ messages:
     connection-throttle: Connection throttled! Please wait before reconnecting.
 world-settings:
   default:
+    ender-dragons-death-always-places-dragon-egg: false
+    update-pathfinding-on-block-update: true
+    only-players-collide: false
+    allow-vehicle-collisions: true
+    max-leash-distance: 10.0
     non-player-arrow-despawn-rate: 60
     creative-arrow-despawn-rate: -1
     seed-based-feature-search: true
@@ -235,3 +240,8 @@ world-settings:
       spawn-chance-failure-increment: 25
       spawn-chance-min: 25
       spawn-chance-max: 75
+    entity-per-chunk-save-limit:
+      experience_orb: -1
+      snowball: -1
+      ender_pearl: -1
+      arrow: -1
