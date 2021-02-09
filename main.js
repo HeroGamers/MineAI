@@ -1,30 +1,40 @@
-const { log, table } = console
-const { readFileSync, writeFileSync } = require('fs')
+const {
+    log,
+    table
+} = console
+const {
+    readFileSync,
+    writeFileSync
+} = require('fs')
 const login_info = JSON.parse(readFileSync('login_info.json', "utf8"))
 const mineflayer = require('mineflayer')
 const mineflayerViewer = require('prismarine-viewer').mineflayer
 const pathfinder = require('mineflayer-pathfinder').pathfinder
 const Movements = require('mineflayer-pathfinder').Movements
-const { GoalNear } = require('mineflayer-pathfinder').goals
+const {
+    GoalNear
+} = require('mineflayer-pathfinder').goals
 
 
 const bot = mineflayer.createBot({
-    host: login_info.host,  // optional
-    port: login_info.port,  // optional
-    username: login_info.username,  // email and password are required only for
-    password: login_info.password,  // online-mode=true servers
-    version: login_info.version,    // false corresponds to auto version detection (that's the default), put for example "1.8.8" if you need a specific version
-    auth: login_info.auth   // optional; by default uses mojang, if using a microsoft account, set to 'microsoft'
+    host: login_info.host, // optional
+    port: login_info.port, // optional
+    username: login_info.username, // email and password are required only for
+    password: login_info.password, // online-mode=true servers
+    version: login_info.version, // false corresponds to auto version detection (that's the default), put for example "1.8.8" if you need a specific version
+    auth: login_info.auth // optional; by default uses mojang, if using a microsoft account, set to 'microsoft'
 })
 
 bot.loadPlugin(pathfinder)
 
 const _Combat = require('./Util/combat.js')
 const _Tools = require('./Util/tools.js')
+const _Miner = require('./Util/miner.js')
 const _Logger = require('./Util/logger.js')
 const _Gather = require('./Util/gather.js')
 const _Player = require('./Util/player.js')
 const Combat = new _Combat(bot)
+var Miner;
 const Tools = new _Tools(bot)
 const Logger = new _Logger(bot)
 const Gather = new _Gather(bot)
@@ -39,10 +49,9 @@ try {
 
 
 // Our command listener
-let checkChat = function (username, message, source) {
+let checkChat = function(username, message, source) {
     if (username === bot.username) return // så er det botten selv, der skriver
-
-    let say = function (sendMessage, username, source) {
+    let say = function(sendMessage, username, source) {
         switch (source) {
             case "chat":
                 bot.chat(sendMessage)
@@ -60,8 +69,7 @@ let checkChat = function (username, message, source) {
                 save.masters.push(username)
                 say('Du er nu min herre, ' + username + '.', username, source)
                 writeFileSync('save.json', JSON.stringify(save, 0, 4, true))
-            }
-            else {
+            } else {
                 say("Jeg er allerede din slave, min herre.", username, source)
             }
         }
@@ -69,7 +77,9 @@ let checkChat = function (username, message, source) {
     }
 
     // Kommandoer
-    if (!save.masters.includes(username)) {return}
+    if (!save.masters.includes(username)) {
+        return
+    }
     // Kommando prefix
 
 
@@ -128,8 +138,7 @@ let checkChat = function (username, message, source) {
             for (var i = 0; i < 3; i++) {
                 try {
                     position[i] = parseFloat(position[i])
-                }
-                catch {
+                } catch {
                     say("Cannot parse position!", username, source)
                     return
                 }
@@ -143,7 +152,7 @@ let checkChat = function (username, message, source) {
 
             break
         case ".inventory":
-            function itemToString (item) {
+            function itemToString(item) {
                 if (item) {
                     return `${item.name} x ${item.count}`
                 } else {
@@ -160,16 +169,16 @@ let checkChat = function (username, message, source) {
         case ".get":
             switch (arg2) {
                 case "diamond":
-                    Gather.getResource("diamonds", 64)
+                    Miner.mine()
                     break
                 case "iron":
-                    Gather.getResource("iron", 64)
+                    Miner.mine()
                     break
                 case "cobblestone":
-                    Gather.getResource("cobblestone", 64)
+                    Miner.mine()
                     break
                 case "stone":
-                    Gather.getResource("cobblestone", 64)
+                    Miner.mine()
                     break
                 case "wood":
                     Gather.getResource("wood", 4)
@@ -230,78 +239,81 @@ let checkChat = function (username, message, source) {
 }
 
 // Listen for both whispers and chats
-bot.on('chat', function (username, message) {
+bot.on('chat', function(username, message) {
     checkChat(username, message, "chat")
 })
-bot.on('whisper', function (username, message) {
+bot.on('whisper', function(username, message) {
     checkChat(username, message, "whisper")
 })
 
 bot.once('spawn', () => {
-    mineflayerViewer(bot, { port: login_info.view_port, firstPerson: login_info.first_person })
+    mineflayerViewer(bot, {
+        port: login_info.view_port,
+        firstPerson: login_info.first_person
+    })
     Player.init()
 
-    // Main bot loop
-    // loop = () => {
-    //     var inventoryWindow = Player.getInventoryWindow()
-    //     var inventoryWood = Player.getWindowWood(inventoryWindow)
-    //
-    //     // If inventory is full
-    //     if (inventoryWindow.emptySlotCount() <= 1) {
-    //         // Throw out crap or put in chest if possible
-    //         log("Inventory is full.")
-    //     }
-    //     // If less than 30 wood logs in the inventory
-    //     else if (inventoryWood[0] < 32) {
-    //         // gather wood
-    //         Gather.getResource('wood', 64-inventoryWood[0])
-    //     }
-    //     // We have wood, check for planks?
-    //     else if (inventoryWood[1] < 32) {
-    //         Player.craftPlanks(64-inventoryWood[1])
-    //     }
-    //     // We have planks, check for crafting table, either in inventory or near the bot
-    //     else if (!Player.getCraftingTable()) {
-    //         Player.craftCraftingTable()
-    //     }
-    //     // If has enough diamonds for diamondpickaxe, craft that
-    //     else if (inventoryWindow.count(581) >= 3) {
-    //         Player.craftPickaxe('diamond')
-    //     }
-    //     // Check for a netherite, diamond or iron pickaxe first - since if we have those we can just go straight back to mining diamonds :)
-    //     else if (Player.hasPickaxe('netherite') || Player.hasPickaxe('diamond') || Player.hasPickaxe('iron')) {
-    //         Gather.getResource('diamonds', 1) // gather 1, if everything else checks out after next loop we can just pick up another :)
-    //     }
-    //     // Check for iron for iron pickaxe, if we have that craft it
-    //     else if (inventoryWindow.count(582) >= 3) {
-    //         Player.craftPickaxe('iron')
-    //     }
-    //     // Check for iron ore, if have it, smelt it (if we have cobble that is ahahah)
-    //     else if (inventoryWindow.count(34) >= 3) {
-    //         Player.smeltOre('iron')
-    //     }
-    //     // Since we don't have any iron, we gotta get that hehe, check for stone pickaxe
-    //     else if (Player.hasPickaxe('stone')) {
-    //         Gather.getResource('iron', 64-inventoryWindow.count(34))
-    //     }
-    //     // No stone pickaxe? Well, let's craft that - if we have cobblestone that is haha
-    //     else if (inventoryWindow.count(14) >= 3) {
-    //         Player.craftPickaxe('stone')
-    //     }
-    //     // No cobble? Let's fix that - check for shitty wooden pickaxe
-    //     else if (Player.hasPickaxe('wooden')) {
-    //         Gather.getResource('cobblestone',3)
-    //     }
-    //     // Craft wooden pickaxe
-    //     else {
-    //         Player.craftPickaxe('wooden', () => {})
-    //     }
-    //
-    //     // Loop forever :D
-    //     setTimeout(loop, 50)
-    // }
-    // loop()
+    Main bot loop
+    loop = () => {
+        var inventoryWindow = Player.getInventoryWindow()
+        var inventoryWood = Player.getWindowWood(inventoryWindow)
 
+        // If inventory is full
+        if (inventoryWindow.emptySlotCount() <= 1) {
+            // Throw out crap or put in chest if possible
+            log("Inventory is full.")
+        }
+        // If less than 30 wood logs in the inventory
+        else if (inventoryWood[0] < 32) {
+            // gather wood
+            Gather.getResource('wood', 64 - inventoryWood[0])
+        }
+        // We have wood, check for planks?
+        else if (inventoryWood[1] < 32) {
+            Player.craftPlanks(64 - inventoryWood[1])
+        }
+        // We have planks, check for crafting table, either in inventory or near the bot
+        else if (!Player.getCraftingTable()) {
+            Player.craftCraftingTable()
+        }
+        // If has enough diamonds for diamondpickaxe, craft that
+        else if (inventoryWindow.count(581) >= 3) {
+            Player.craftPickaxe('diamond')
+        }
+        // Check for a netherite, diamond or iron pickaxe first - since if we have those we can just go straight back to mining diamonds :)
+        else if (Player.hasPickaxe('netherite') || Player.hasPickaxe('diamond') || Player.hasPickaxe('iron')) {
+            Miner.mine('diamonds', 1) // gather 1, if everything else checks out after next loop we can just pick up another :)
+        }
+        // Check for iron for iron pickaxe, if we have that craft it
+        else if (inventoryWindow.count(582) >= 3) {
+            Player.craftPickaxe('iron')
+        }
+        // Check for iron ore, if have it, smelt it (if we have cobble that is ahahah)
+        else if (inventoryWindow.count(34) >= 3) {
+            Player.smeltOre('iron')
+        }
+        // Since we don't have any iron, we gotta get that hehe, check for stone pickaxe
+        else if (Player.hasPickaxe('stone')) {
+            Miner.mine('iron', 64 - inventoryWindow.count(34))
+        }
+        // No stone pickaxe? Well, let's craft that - if we have cobblestone that is haha
+        else if (inventoryWindow.count(14) >= 3) {
+            Player.craftPickaxe('stone')
+        }
+        // No cobble? Let's fix that - check for shitty wooden pickaxe
+        else if (Player.hasPickaxe('wooden')) {
+            Miner.mine('cobblestone', 3)
+        }
+        // Craft wooden pickaxe
+        else {
+            Player.craftPickaxe('wooden', () => {})
+        }
+
+        // Loop forever :D
+        setTimeout(loop, 50)
+    }
+    loop()
+    Miner = new _Miner(bot)
     setInterval(() => {
         Gather._getRessources()
     }, 3000)
@@ -320,14 +332,24 @@ function exitHandler(options, exitCode) {
 }
 
 //do something when app is closing
-process.on('exit', exitHandler.bind(null,{cleanup:true}))
+process.on('exit', exitHandler.bind(null, {
+    cleanup: true
+}))
 
 //catches ctrl+c event
-process.on('SIGINT', exitHandler.bind(null, {exit:true}))
+process.on('SIGINT', exitHandler.bind(null, {
+    exit: true
+}))
 
 // catches "kill pid" (for example: nodemon restart)
-process.on('SIGUSR1', exitHandler.bind(null, {exit:true}))
-process.on('SIGUSR2', exitHandler.bind(null, {exit:true}))
+process.on('SIGUSR1', exitHandler.bind(null, {
+    exit: true
+}))
+process.on('SIGUSR2', exitHandler.bind(null, {
+    exit: true
+}))
 
 //catches uncaught exceptions
-process.on('uncaughtException', exitHandler.bind(null, {exit:true}))
+process.on('uncaughtException', exitHandler.bind(null, {
+    exit: true
+}))

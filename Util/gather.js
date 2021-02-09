@@ -78,12 +78,6 @@ class Gather {
     getResource(type, amount=64) {
         log(`Gathering ${amount}x ${type}...`)
         switch (type) {
-            case 'diamonds':
-                break
-            case 'iron':
-                break
-            case 'cobblestone':
-                break
             case 'wood':
                 /*
                 1. Find det nærmeste træ
