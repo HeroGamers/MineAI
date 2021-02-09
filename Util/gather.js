@@ -11,7 +11,6 @@ class Gather {
         this.current_block = []
 
 
-
         this.bot.G_clear_ressources = () => {
             this.ressources = []
             this.bot.stopDigging()
@@ -133,9 +132,6 @@ class Gather {
                         }
                     }
                 })
-
-
-
                 break
             default:
                 break

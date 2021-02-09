@@ -282,7 +282,7 @@ bot.once('spawn', () => {
         }
         // Check for a netherite, diamond or iron pickaxe first - since if we have those we can just go straight back to mining diamonds :)
         else if (Player.hasPickaxe('netherite') || Player.hasPickaxe('diamond') || Player.hasPickaxe('iron')) {
-            Miner.mine('diamonds', 1) // gather 1, if everything else checks out after next loop we can just pick up another :)
+            Miner.getResource('diamonds', 1) // gather 1, if everything else checks out after next loop we can just pick up another :)
         }
         // Check for iron for iron pickaxe, if we have that craft it
         else if (inventoryWindow.count(582) >= 3) {
@@ -294,7 +294,7 @@ bot.once('spawn', () => {
         }
         // Since we don't have any iron, we gotta get that hehe, check for stone pickaxe
         else if (Player.hasPickaxe('stone')) {
-            Miner.mine('iron', 64 - inventoryWindow.count(34))
+            Miner.getResource('iron', 64 - inventoryWindow.count(34))
         }
         // No stone pickaxe? Well, let's craft that - if we have cobblestone that is haha
         else if (inventoryWindow.count(14) >= 3) {
@@ -302,7 +302,7 @@ bot.once('spawn', () => {
         }
         // No cobble? Let's fix that - check for shitty wooden pickaxe
         else if (Player.hasPickaxe('wooden')) {
-            Miner.mine('cobblestone', 3)
+            Miner.getResource('cobblestone', 3)
         }
         // Craft wooden pickaxe
         else {
@@ -314,9 +314,10 @@ bot.once('spawn', () => {
     }
     loop()
     Miner = new _Miner(bot)
-    setInterval(() => {
-        Gather._getRessources()
-    }, 3000)
+
+    // setInterval(() => {
+    //     Gather._getRessources()
+    // }, 3000)
 })
 
 

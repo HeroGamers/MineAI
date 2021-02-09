@@ -1,4 +1,6 @@
+const { table, log } = console
 var vec3 = require('vec3')
+
 class Miner {
 	constructor(bot) {
 		this.bot = bot
@@ -7,7 +9,7 @@ class Miner {
 		console.log("running")
 	}
 
-	mine(ore, amount) {
+	mine() {
 		console.log("mine", this.bot.entity.position)
 		var fallingBlocks = [28, 29]
 		function fallingBlockFix(block, placeBlock) {
@@ -21,10 +23,10 @@ class Miner {
 				})
 			})
 		}
-		var block0 = this.bot.blockAt(this.bot.entity.position.offset(0, 1, 1), false)
-		var block1 = this.bot.blockAt(this.bot.entity.position.offset(0, 0, 1), false)
-		var block2 = this.bot.blockAt(this.bot.entity.position.offset(0, -1, 1), false)
-		var mbySand = this.bot.blockAt(this.bot.entity.position.offset(0, 2, 1), false)
+		var block0 = this.bot.blockAt(this.bot.entity.position.offset(0, 1, 1))
+		var block1 = this.bot.blockAt(this.bot.entity.position.offset(0, 0, 1))
+		var block2 = this.bot.blockAt(this.bot.entity.position.offset(0, -1, 1))
+		var mbySand = this.bot.blockAt(this.bot.entity.position.offset(0, 2, 1))
 		var curretYVal = this.bot.entity.position.y
 		if (curretYVal < 14) {
 			this.bot.chat("i am at level 13 now :))")
@@ -38,7 +40,7 @@ class Miner {
 						var amIHere = setInterval(checkpos, 10)
 
 						function checkpos() {
-							if (this.bot.entity.position.y == curretYVal - 1) {
+							if (this.bot.entity.position.y === curretYVal - 1) {
 								clearInterval(amIHere);
 								this.bot.clearControlStates();
 								setTimeout(function() {
@@ -49,6 +51,21 @@ class Miner {
 					})
 				})
 			})
+		}
+	}
+
+
+	getResource(ore, amount=64) {
+		log(`Gathering ${amount}x ${type}...`)
+		switch (type) {
+			case 'diamonds':
+			case 'iron':
+			case 'stone':
+			case 'cobblestone':
+				this.mine()
+				break
+			default:
+				break
 		}
 	}
 }
