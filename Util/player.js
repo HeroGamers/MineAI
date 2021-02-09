@@ -13,6 +13,25 @@ class Player {
         return this.bot.inventory
     }
 
+    eat() {
+        var data = this.mcData.foodsArray
+        var foodNames = data.map((item) => item.name)
+        var inventory = this.getInventoryWindow().items();
+        var found_food = inventory.filter((item) => foodNames.includes(item.name))
+        log(found_food)
+        if (this.bot.food === 20){
+            // dont eat
+            log("Not hungry")
+        }else if(found_food.length === 0 || !found_food){
+            // No food found
+            log("No food")
+        }else {
+            //eat
+            log("Ate some food")
+            this.bot.equip(found_food[0], "hand", (callback) => {this.bot.consume()})
+        }
+    }
+
     getCraftingTable() {
         var craftingTableItem = this.mcData.blocksByName.crafting_table
         var craftingBlock = this.bot.findBlock({
